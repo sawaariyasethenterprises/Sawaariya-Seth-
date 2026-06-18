@@ -140,7 +140,10 @@ Object.values(RULES).forEach(rule => {
   });
 });
 
-form && form.addEventListener('submit', e => {
+const WEB3FORMS_KEY = 'YOUR_ACCESS_KEY_HERE'; /* ← paste key from web3forms.com */
+const WA_NUMBER     = '917055598280';
+
+form && form.addEventListener('submit', async e => {
   e.preventDefault();
   if (!validateAll()) {
     const firstErr = form.querySelector('.fld--error input, .fld--error select');
@@ -153,20 +156,61 @@ form && form.addEventListener('submit', e => {
   btnText.textContent = 'Sending...';
   btn.disabled = true;
 
-  /* Simulate send — replace with actual backend / EmailJS call */
-  setTimeout(() => {
-    btnText.textContent = 'Submit Enquiry';
-    btn.disabled = false;
-    form.reset();
-    Object.values(RULES).forEach(rule => {
-      const fldEl = document.getElementById(rule.fld);
-      if (fldEl) { fldEl.classList.remove('fld--error', 'fld--valid'); }
-      const errEl = fldEl && fldEl.querySelector('.fld-error');
-      if (errEl) errEl.textContent = '';
-    });
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }, 1400);
+  /* ── Collect values ── */
+  const name     = document.getElementById('inp-name').value.trim();
+  const phone    = document.getElementById('inp-phone').value.trim();
+  const email    = document.getElementById('inp-email').value.trim();
+  const city     = document.getElementById('inp-city').value.trim();
+  const bagType  = document.getElementById('inp-bagtype').value;
+  const qty      = document.getElementById('inp-qty').value.trim();
+  const printing = document.getElementById('inp-print').value;
+  const specs    = document.getElementById('inp-specs').value.trim();
+  const printLabel = printing === 'yes' ? 'Yes — With Logo Printing' : 'No — Plain Bags Required';
+
+  /* ── 1. Email via Web3Forms ── */
+  try {
+    const payload = new FormData();
+    payload.append('access_key',  WEB3FORMS_KEY);
+    payload.append('subject',     `New Bag Enquiry from ${name} — Sawaariya Seth Enterprises`);
+    payload.append('from_name',   'SSE Website Enquiry');
+    payload.append('Name',        name);
+    payload.append('Mobile',      phone);
+    payload.append('Email',       email    || 'Not provided');
+    payload.append('City & State',city);
+    payload.append('Bag Type',    bagType);
+    payload.append('Quantity',    qty      || 'Not specified');
+    payload.append('Printing',    printLabel);
+    payload.append('Specifications', specs || 'None');
+
+    await fetch('https://api.web3forms.com/submit', { method: 'POST', body: payload });
+  } catch (_) { /* silent — WhatsApp still goes through */ }
+
+  /* ── 2. WhatsApp with pre-filled message ── */
+  const waMsg = encodeURIComponent(
+    `*New Enquiry — Sawaariya Seth Enterprises*\n\n` +
+    `*Name:* ${name}\n` +
+    `*Mobile:* ${phone}\n` +
+    `*Email:* ${email || 'Not provided'}\n` +
+    `*City & State:* ${city}\n` +
+    `*Bag Type:* ${bagType}\n` +
+    `*Quantity:* ${qty || 'Not specified'}\n` +
+    `*Printing:* ${printLabel}\n` +
+    (specs ? `*Specs:* ${specs}` : '')
+  );
+  window.open(`https://wa.me/${WA_NUMBER}?text=${waMsg}`, '_blank', 'noopener,noreferrer');
+
+  /* ── 3. Reset UI ── */
+  btnText.textContent = 'Submit Enquiry';
+  btn.disabled = false;
+  form.reset();
+  Object.values(RULES).forEach(rule => {
+    const fldEl = document.getElementById(rule.fld);
+    if (fldEl) fldEl.classList.remove('fld--error', 'fld--valid');
+    const errEl = fldEl && fldEl.querySelector('.fld-error');
+    if (errEl) errEl.textContent = '';
+  });
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
 });
 
 function closeModal() {
@@ -227,8 +271,8 @@ function createStickyBar() {
   const bar = document.createElement('div');
   bar.className = 'sticky-cta-bar';
   bar.innerHTML = `
-    <a href="tel:+91XXXXXXXXXX" class="scb-call">📞 Call</a>
-    <a href="https://wa.me/91XXXXXXXXXX" target="_blank" class="scb-wa">💬 WhatsApp</a>
+    <a href="tel:+917055598280" class="scb-call">📞 Call</a>
+    <a href="https://wa.me/917055598280" target="_blank" rel="noopener noreferrer" class="scb-wa">💬 WhatsApp</a>
     <a href="#contact" class="scb-quote">Get Quote</a>
   `;
   document.body.appendChild(bar);
