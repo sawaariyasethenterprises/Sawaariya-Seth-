@@ -185,21 +185,7 @@ form && form.addEventListener('submit', async e => {
     await fetch('https://api.web3forms.com/submit', { method: 'POST', body: payload });
   } catch (_) { /* silent — WhatsApp still goes through */ }
 
-  /* ── 2. WhatsApp with pre-filled message ── */
-  const waMsg = encodeURIComponent(
-    `*New Enquiry — Sawaariya Seth Enterprises*\n\n` +
-    `*Name:* ${name}\n` +
-    `*Mobile:* ${phone}\n` +
-    `*Email:* ${email || 'Not provided'}\n` +
-    `*City & State:* ${city}\n` +
-    `*Bag Type:* ${bagType}\n` +
-    `*Quantity:* ${qty || 'Not specified'}\n` +
-    `*Printing:* ${printLabel}\n` +
-    (specs ? `*Specs:* ${specs}` : '')
-  );
-  window.open(`https://wa.me/${WA_NUMBER}?text=${waMsg}`, '_blank', 'noopener,noreferrer');
-
-  /* ── 3. Reset UI ── */
+  /* ── 2. Reset UI ── */
   btnText.textContent = 'Submit Enquiry';
   btn.disabled = false;
   form.reset();
