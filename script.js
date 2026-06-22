@@ -173,6 +173,7 @@ form && form.addEventListener('submit', async e => {
     payload.append('access_key',  WEB3FORMS_KEY);
     payload.append('subject',     `New Bag Enquiry from ${name} — Sawaariya Seth Enterprises`);
     payload.append('from_name',   'SSE Website Enquiry');
+    payload.append('replyto',     email || 'sawaariyasethenterprises@gmail.com');
     payload.append('Name',        name);
     payload.append('Mobile',      phone);
     payload.append('Email',       email    || 'Not provided');
